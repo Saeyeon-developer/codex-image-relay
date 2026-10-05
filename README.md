@@ -55,7 +55,10 @@ powershell -NoProfile -ExecutionPolicy Bypass -File ./imagen.ps1 -PromptFile pro
 | `-Orientation` | `auto` (default), `portrait`, `landscape`, `square`. A coarse hint. For a specific ratio, write it in the prompt (see Caveats). |
 | `-Reference` | Reference images, attached in order as image 1, image 2, and so on. Describe each one's role in the prompt. |
 | `-Model`, `-Effort` | Override the Codex *agent* model for the mode. The image model cannot be chosen. |
-| `-TimeoutSec` | Default 600. |
+| `-TimeoutSec` | Per Codex run. Default 600. |
+| `-Retries` | How many times a transient Codex failure (model at capacity / server overloaded, rate limit, 5xx) is retried with a fresh `codex exec`. Default 2. Other errors are never retried. |
+| `-RetryDelaySec` | Wait before the first retry; doubles on each further retry. Default 20. |
+| `-CodexExe` | For testing only: run this executable (for example a fake that prints canned JSONL) instead of the bundled `codex.exe`. |
 
 ### Prompt modes
 
@@ -70,7 +73,7 @@ The agent model only drives the tool call (plus prompt writing in `Draft`). It d
 
 - `out\panel.png`: the image.
 - `out\panel.json`: the prompt, `prompt_used` (the prompt Codex wrote in `Draft` mode), references, model, Codex `thread_id`, token usage and elapsed time.
-- On success, stdout ends with `OK <path> (<W>x<H>, <bytes> bytes, <s>s, <model>/<effort>)` and the exit code is 0. On failure the exit code is 1 and the reason is printed.
+- On success, stdout ends with `OK <path> (<W>x<H>, <bytes> bytes, <s>s, <model>/<effort>)` and the exit code is 0. On failure the exit code is 1, stdout gets exactly one line `FAIL <reason>` (the Codex error message when there is one), and the details go to stderr. Parse the `FAIL` line rather than stderr: Windows PowerShell writes stderr in the console code page. Each automatic retry prints `retry <n>/<max> after <s>s: <reason>`.
 - Concurrent runs are safe. Each run takes its image only from its own Codex thread folder (`~/.codex/generated_images/<thread_id>/`).
 
 ## Lean mode: why it is cheap
@@ -119,6 +122,7 @@ What remains is Codex's multi-agent role note (about 2.7k characters) and the to
 | `Codex is not logged in` | Open the Codex app and sign in. |
 | `Unknown feature flag: …` | A Codex update renamed a feature. See Caveats. |
 | `No image produced` | The request may have been refused or failed. The printed log shows Codex's reason. Adjust the prompt. |
+| `Selected model is at capacity` | OpenAI's servers are busy. The script already retried; wait a few minutes and run again, or raise `-Retries` / `-RetryDelaySec`. |
 | A model error mentioning `gpt-6-luna` / `gpt-6.1-sol` | Pass `-Model <slug>` with a model your plan has. |
 
 ## License

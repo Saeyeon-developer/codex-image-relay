@@ -56,7 +56,10 @@ powershell -NoProfile -ExecutionPolicy Bypass -File ./imagen.ps1 -PromptFile pro
 | `-Orientation` | `auto`(기본값), `portrait`, `landscape`, `square`. 대략적인 방향 힌트입니다. 특정 비율이 필요하면 프롬프트에 적으세요(주의 사항 참고). |
 | `-Reference` | 레퍼런스 이미지. 지정한 순서대로 이미지 1, 이미지 2가 됩니다. 프롬프트에 각 이미지의 역할을 적어주세요. |
 | `-Model`, `-Effort` | 모드별로 정해진 Codex **에이전트** 모델 대신 다른 모델을 씁니다. 이미지 모델은 바꿀 수 없습니다. |
-| `-TimeoutSec` | 제한 시간(초). 기본 600 |
+| `-TimeoutSec` | Codex 실행 1회당 제한 시간(초). 기본 600 |
+| `-Retries` | 일시적인 Codex 오류(모델 용량 초과/서버 과부하, 요청 한도, 5xx)일 때 `codex exec`를 새로 실행해 다시 시도하는 횟수. 기본 2. 다른 오류는 다시 시도하지 않습니다. |
+| `-RetryDelaySec` | 첫 재시도 전 대기 시간(초). 재시도할 때마다 두 배가 됩니다. 기본 20 |
+| `-CodexExe` | 테스트 전용: 내장 `codex.exe` 대신 이 실행 파일(예: 정해진 JSONL을 출력하는 가짜 실행 파일)을 씁니다. |
 
 ### 프롬프트 모드
 
@@ -71,7 +74,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File ./imagen.ps1 -PromptFile pro
 
 - `out\panel.png`: 이미지
 - `out\panel.json`: 원래 프롬프트, 실제로 쓰인 프롬프트(`prompt_used`, Draft 모드에서는 Codex가 작성한 것), 레퍼런스, 모델, Codex 실행 ID(`thread_id`), 토큰 사용량, 소요 시간
-- 성공하면 마지막 줄에 `OK <경로> (<가로>x<세로>, <바이트> bytes, <초>s, <모델>/<강도>)`를 출력하고 종료 코드 0으로 끝납니다. 실패하면 이유를 출력하고 종료 코드 1로 끝납니다.
+- 성공하면 마지막 줄에 `OK <경로> (<가로>x<세로>, <바이트> bytes, <초>s, <모델>/<강도>)`를 출력하고 종료 코드 0으로 끝납니다. 실패하면 표준 출력에 `FAIL <이유>` 한 줄(Codex 오류 메시지가 있으면 그 메시지)을 출력하고, 자세한 내용은 표준 오류로 보낸 뒤 종료 코드 1로 끝납니다. Windows PowerShell은 표준 오류를 콘솔 코드 페이지로 쓰므로, 호출하는 쪽은 표준 오류 대신 `FAIL` 줄을 읽으세요. 자동 재시도할 때마다 `retry <n>/<최대> after <초>s: <이유>`를 출력합니다.
 - 여러 개를 동시에 실행해도 안전합니다. 각 실행은 자기 실행 폴더(`~/.codex/generated_images/<thread_id>/`)에서만 이미지를 가져옵니다.
 
 ## 최소 구성 모드: 사용량이 적은 이유
@@ -120,6 +123,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File ./imagen.ps1 -PromptFile pro
 | `Codex is not logged in` | Codex 앱을 열고 로그인하세요. |
 | `Unknown feature flag: …` | Codex 업데이트로 기능 이름이 바뀌었습니다. 주의 사항을 참고하세요. |
 | `No image produced` | 요청이 거부됐거나 생성에 실패했습니다. 함께 출력된 로그에 Codex가 밝힌 이유가 있습니다. 프롬프트를 고쳐서 다시 시도하세요. |
+| `Selected model is at capacity` | OpenAI 서버가 붐비는 상태입니다. 스크립트가 이미 다시 시도했습니다. 몇 분 뒤 다시 실행하거나 `-Retries` / `-RetryDelaySec`를 늘리세요. |
 | `gpt-6-luna` / `gpt-6.1-sol` 관련 모델 오류 | 내 요금제에서 쓸 수 있는 모델을 `-Model <이름>`으로 지정하세요. |
 
 ## 라이선스
