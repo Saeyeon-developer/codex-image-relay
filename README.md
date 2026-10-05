@@ -52,7 +52,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File ./imagen.ps1 -PromptFile pro
 | `-PromptFile` / `-Prompt` | The prompt. Use a UTF-8 file for long or non-English prompts. |
 | `-Output` | Destination PNG path. Required. |
 | `-PromptMode` | `Final`: the prompt is finished and is passed to the image tool word for word. `Draft` (default): Codex writes the image prompt from your brief first. |
-| `-Orientation` | `auto` (default), `portrait`, `landscape`, `square`. Only a hint. |
+| `-Orientation` | `auto` (default), `portrait`, `landscape`, `square`. A coarse hint. For a specific ratio, write it in the prompt (see Caveats). |
 | `-Reference` | Reference images, attached in order as image 1, image 2, and so on. Describe each one's role in the prompt. |
 | `-Model`, `-Effort` | Override the Codex *agent* model for the mode. The image model cannot be chosen. |
 | `-TimeoutSec` | Default 600. |
@@ -95,7 +95,17 @@ What remains is Codex's multi-agent role note (about 2.7k characters) and the to
 ## Caveats
 
 - **Windows only for now.** The script relies on the Codex desktop app's install location on Windows.
-- **You cannot pick the image model, quality or exact size.** The built-in tool does not expose them. Observed sizes are 1024x1536 and 1536x1024. Resize or crop afterwards if you need an exact size.
+- **You cannot pick the image model or quality.** The built-in tool does not expose them.
+- **Aspect ratio is set by the prompt, not by a parameter.** Write the ratio explicitly (e.g. "The whole image is exactly 4:5") and keep `-Orientation auto`. The pixel count stays near 1.57 MP, so the ratio decides the size:
+
+  | Requested | Result |
+  |---|---|
+  | 4:5 | 1122×1402 |
+  | 2:1 | 1774×887 |
+  | 2.4:1 | 1942×809 |
+  | `-Orientation portrait` | 1024×1536 |
+
+  For an exact pixel size, request the ratio and resize afterwards.
 - **Default agent models may not be on your plan.** If `gpt-6-luna` or `gpt-6.1-sol` are unavailable, list the models you have with the bundled `codex.exe debug models` and pass `-Model`.
 - **Codex updates can break lean mode.** The script disables Codex features by name. If an update renames or removes one, Codex exits with `Unknown feature flag: <name>` and the script fails with exit code 1. It never quietly falls back to the heavy setup. Run `codex.exe features list` and edit the `--disable` list in `imagen.ps1`.
 - **Codex sessions are kept.** Each run is a normal (non-ephemeral) Codex session, so it may appear in Codex's history.

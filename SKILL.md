@@ -33,7 +33,7 @@ From PowerShell:
 | `-PromptFile` / `-Prompt` | path / text | One of the two is required. |
 | `-Output` | path ending in `.png` | Required. Parent folders are created. Overwrites an existing file. |
 | `-PromptMode` | `Final`, `Draft` (default) | See below. |
-| `-Orientation` | `auto` (default), `portrait`, `landscape`, `square` | Only a hint. Observed sizes: 1024x1536, 1536x1024. |
+| `-Orientation` | `auto` (default), `portrait`, `landscape`, `square` | Coarse hint only. For a specific ratio, write it in the prompt instead (see below) and keep `auto`. |
 | `-Reference` | `a.png,b.png` | Optional reference images, attached in order as image 1, image 2, and so on. |
 | `-Model`, `-Effort` | Codex model slug, `low`…`max` | Overrides the mode's Codex agent model. This does not change the image model. |
 | `-TimeoutSec` | default `600` | |
@@ -56,7 +56,8 @@ A good `Final` prompt states the subject, composition and framing, style and med
 
 ## Limits
 
-- You cannot choose the image model, quality or exact size. Resize or crop afterwards if an exact size is needed.
+- You cannot choose the image model or quality.
+- **Aspect ratio follows the prompt.** State it in the first line, for example "The whole image is exactly 4:5 (slightly taller than wide)." and keep `-Orientation auto`. The pixel count stays near 1.57 MP, so the ratio decides the size: observed 4:5 → 1122x1402, 2:1 → 1774x887, 2.4:1 → 1942x809, portrait → 1024x1536. For an exact pixel size, request the ratio and resize afterwards.
 - This script does not offer a transparent-background option.
 - Default Codex agent models are `gpt-6-luna` (Final) and `gpt-6.1-sol` (Draft). If the user's account lacks them, run `codex debug models` with the bundled `codex.exe` to list the available slugs, then pass `-Model`.
 - The lean mode depends on Codex feature-flag names. If a Codex update renames one, the run fails with `Unknown feature flag: <name>`. Remove or rename that entry in the `--disable` list in `imagen.ps1`.

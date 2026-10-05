@@ -53,7 +53,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File ./imagen.ps1 -PromptFile pro
 | `-PromptFile` / `-Prompt` | 프롬프트. 길거나 한글이 들어간 프롬프트는 UTF-8 텍스트 파일로 넘기는 것을 권장합니다. |
 | `-Output` | 저장할 PNG 경로 (필수) |
 | `-PromptMode` | `Final`: 프롬프트가 완성되어 있음. 고치지 않고 그대로 이미지 도구에 넘깁니다. `Draft`(기본값): Codex가 요청을 바탕으로 프롬프트를 먼저 작성합니다. |
-| `-Orientation` | `auto`(기본값), `portrait`, `landscape`, `square`. 방향 힌트일 뿐 정확한 크기는 아닙니다. |
+| `-Orientation` | `auto`(기본값), `portrait`, `landscape`, `square`. 대략적인 방향 힌트입니다. 특정 비율이 필요하면 프롬프트에 적으세요(주의 사항 참고). |
 | `-Reference` | 레퍼런스 이미지. 지정한 순서대로 이미지 1, 이미지 2가 됩니다. 프롬프트에 각 이미지의 역할을 적어주세요. |
 | `-Model`, `-Effort` | 모드별로 정해진 Codex **에이전트** 모델 대신 다른 모델을 씁니다. 이미지 모델은 바꿀 수 없습니다. |
 | `-TimeoutSec` | 제한 시간(초). 기본 600 |
@@ -96,7 +96,17 @@ powershell -NoProfile -ExecutionPolicy Bypass -File ./imagen.ps1 -PromptFile pro
 ## 주의 사항
 
 - **현재는 Windows 전용입니다.** Windows에서 Codex 데스크톱 앱이 설치되는 위치를 기준으로 동작합니다.
-- **이미지 모델, 품질, 정확한 크기는 고를 수 없습니다.** Codex 내장 도구가 이 설정을 제공하지 않습니다. 실제로 나온 크기는 1024x1536과 1536x1024입니다. 정확한 크기가 필요하면 생성 후 리사이즈하거나 잘라내세요.
+- **이미지 모델과 품질은 고를 수 없습니다.** Codex 내장 도구가 이 설정을 제공하지 않습니다.
+- **비율은 옵션이 아니라 프롬프트로 정합니다.** 프롬프트에 "이미지 전체의 가로:세로 비율은 정확히 4:5"처럼 적고 `-Orientation`은 `auto`로 두세요. 픽셀 수는 약 157만 화소로 일정하고, 비율에 따라 크기가 정해집니다.
+
+  | 요청 | 결과 |
+  |---|---|
+  | 4:5 | 1122×1402 |
+  | 2:1 | 1774×887 |
+  | 2.4:1 | 1942×809 |
+  | `-Orientation portrait` | 1024×1536 |
+
+  정확한 픽셀 크기가 필요하면 비율을 맞춰 요청한 뒤 리사이즈하세요.
 - **기본 에이전트 모델이 내 요금제에 없을 수 있습니다.** `gpt-6-luna`나 `gpt-6.1-sol`을 쓸 수 없다면, 앱에 포함된 `codex.exe`로 `debug models`를 실행해 쓸 수 있는 모델을 확인하고 `-Model`로 지정하세요.
 - **Codex가 업데이트되면 최소 구성 모드가 멈출 수 있습니다.** 이 스크립트는 Codex 기능을 이름으로 끕니다. 업데이트로 이름이 바뀌거나 기능이 없어지면 Codex가 `Unknown feature flag: <이름>` 오류를 내고 스크립트도 종료 코드 1로 실패합니다. 몰래 무거운 기본 설정으로 돌아가지는 않습니다. `codex.exe features list`로 현재 이름을 확인한 뒤 `imagen.ps1`의 `--disable` 목록을 고치세요.
 - **Codex 기록에 남습니다.** 실행마다 일반 Codex 세션으로 저장되어 Codex 기록에 보일 수 있습니다.

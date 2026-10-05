@@ -19,10 +19,12 @@
 
 .NOTES
   Known Codex limits (do not promise otherwise):
-  - The image model, quality and exact pixel size cannot be chosen (the built-in tool does not expose them).
+  - The image model and quality cannot be chosen (the built-in tool does not expose them).
     (-Model only picks the Codex agent model that drives the tool, not the image model.)
-  - Only orientation can be hinted (landscape / portrait / square). Observed sizes: 1536x1024, 1024x1536.
-    Need an exact resolution? Generate, then resize/crop afterwards.
+  - Aspect ratio follows the prompt: state it explicitly (e.g. "The whole image is exactly 4:5") and leave
+    -Orientation at auto. The pixel count stays near 1.57 MP, so the ratio decides the size
+    (observed: 4:5 -> 1122x1402, 2:1 -> 1774x887, 2.4:1 -> 1942x809, portrait -> 1024x1536).
+    Need an exact resolution? Request the ratio, then resize.
   - Prompt text is passed to codex via stdin, so any length and any language is fine.
   - Safe to run in parallel: the image is taken from this run's own Codex thread folder.
   - Writes <output>.json next to the image (prompt, references, model, thread id, final prompt used).
