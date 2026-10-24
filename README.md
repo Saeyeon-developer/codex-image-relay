@@ -1,3 +1,6 @@
+> [!NOTE]
+> If you want to give Codex a wider range of tasks from within Claude Code, or prefer a more thoroughly tested option, check out [openai/codex-plugin-cc](https://github.com/openai/codex-plugin-cc). This is OpenAI's **official plugin** for using Codex in Claude Code. You can also use it to ask Codex to generate images directly from Claude Code.
+
 # codex-image-relay
 
 [한국어](README.ko.md)
